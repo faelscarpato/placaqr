@@ -13,6 +13,7 @@ import {
   ArrowUpRight,
   Printer
 } from 'lucide-react';
+import { PwaInstallPrompt } from '../../components/PwaInstallPrompt';
 
 interface DashboardMetrics {
   plates_stock: number;
@@ -93,6 +94,9 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Aviso de Instalação do PWA */}
+      <PwaInstallPrompt />
+
       {/* Top Banner / Boas-vindas */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

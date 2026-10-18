@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sem Conexão — Placa QR</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .card {
+      max-width: 420px;
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 28px;
+      padding: 36px 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .icon-wrap {
+      width: 80px;
+      height: 80px;
+      border-radius: 22px;
+      background: #2563eb;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+    }
+    .icon-wrap img {
+      width: 56px;
+      height: 56px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+    p {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 14px 20px;
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    .btn:active {
+      transform: scale(0.98);
+      background: #1d4ed8;
+    }
+    .badge {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-wrap">
+      <img src="/icons/launchericon-192x192.png" alt="Placa QR" />
+    </div>
+    <h1>Você está desconectado</h1>
+    <p>
+      Não foi possível conectar à internet. Verifique sua conexão móvel ou Wi-Fi para continuar acessando o painel da Placa QR.
+    </p>
+    <button class="btn" onclick="window.location.reload()">
+      Tentar Novamente
+    </button>
+    <span class="badge">Placa QR • Modo Offline</span>
+  </div>
+</body>
+</html>
