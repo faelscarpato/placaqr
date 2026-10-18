@@ -17,6 +17,24 @@ interface PlateResolveResult {
   company_name: string | null;
 }
 
+function escapeHtml(str: string): string {
+  return (str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function escapeJs(str: string): string {
+  return (str || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '');
+}
+
 // Função utilitária para hash seguro de IP (com sal para privacidade)
 async function hashIp(ip: string): Promise<string> {
   const salt = 'placa-qr-salt-2026';
@@ -169,10 +187,107 @@ export const onRequestGet: PagesFunction<Env, 'code', RouteParams> = async (cont
         })()
       );
 
-      return new Response(null, {
-        status: 302,
+      const safeTargetUrl = plate.review_url;
+      const safeTargetUrlHtml = escapeHtml(safeTargetUrl);
+      const safeTargetUrlJs = escapeJs(safeTargetUrl);
+      const safeCodeJs = escapeJs(code);
+      const safeCompanyIdJs = escapeJs(plate.company_id || '');
+      const safeCompanyNameJs = escapeJs(plate.company_name || '');
+      const safeDeviceTypeJs = escapeJs(deviceType);
+
+      // Retorna resposta HTML instantânea com gtag.js para rastrear no Google Analytics e redirecionar imediatamente
+      const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Redirecionando...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="3;url=${safeTargetUrlHtml}">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X03TXPQ9BR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-X03TXPQ9BR', {
+      page_path: '/r/' + '${safeCodeJs}',
+      page_title: 'Redirect Scan - ${safeCodeJs}',
+      transport_type: 'beacon'
+    });
+
+    var redirected = false;
+    function doRedirect() {
+      if (!redirected) {
+        redirected = true;
+        window.location.replace('${safeTargetUrlJs}');
+      }
+    }
+
+    // Dispara evento no GA4 e redireciona via callback
+    gtag('event', 'scan_redirect', {
+      plate_code: '${safeCodeJs}',
+      company_id: '${safeCompanyIdJs}',
+      company_name: '${safeCompanyNameJs}',
+      device_type: '${safeDeviceTypeJs}',
+      destination_url: '${safeTargetUrlJs}',
+      event_callback: function() {
+        doRedirect();
+      }
+    });
+
+    // Fallback de segurança: redireciona em 120ms mesmo se o GA falhar ou for bloqueado por adblock
+    setTimeout(doRedirect, 120);
+  </script>
+  <noscript>
+    <meta http-equiv="refresh" content="0;url=${safeTargetUrlHtml}">
+  </noscript>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f8fafc;
+      color: #334155;
+      text-align: center;
+      padding: 1.5rem;
+    }
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 4px solid #e2e8f0;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 1.25rem;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    a {
+      color: #2563eb;
+      text-decoration: underline;
+      font-size: 0.875rem;
+      margin-top: 1.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <p style="font-weight: 600; font-size: 1.125rem; margin: 0 0 0.5rem 0;">Redirecionando para avaliação...</p>
+  <p style="color: #64748b; font-size: 0.875rem; margin: 0;">Você será transferido para a página oficial do Google em instantes.</p>
+  <a href="${safeTargetUrlHtml}">Clique aqui se não for redirecionado automaticamente</a>
+</body>
+</html>`;
+
+      return new Response(html, {
+        status: 200,
         headers: {
-          Location: plate.review_url,
+          'Content-Type': 'text/html; charset=utf-8',
           'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
           Pragma: 'no-cache',
         },
