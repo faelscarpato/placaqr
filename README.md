@@ -6,8 +6,8 @@ Sistema moderno hospedado no **Cloudflare Pages** (com **Pages Functions**) e **
 
 ## 🌐 Endereço da Aplicação (Cloudflare Pages)
 
-- **URL do Projeto:** *(Aguardando execução do deploy pelo Cloudflare)*:
-  - `https://placa-qr.pages.dev`
+- **URL do Projeto em Produção:**
+  - [https://placaqr.pages.dev](https://placaqr.pages.dev)
 
 ---
 
@@ -45,8 +45,8 @@ placa-qr/
 │       └── index.css
 ├── .dev.vars.example              # Exemplo de variáveis locais do Cloudflare
 ├── .gitignore
-├── package.json                   # Scripts da raiz (dev, build, deploy)
-├── wrangler.toml                  # Configuração do Cloudflare Pages
+├── package.json                   # Workspaces e scripts raiz (dev, build, deploy)
+├── wrangler.toml                  # Configuração do Cloudflare Pages (placaqr)
 └── README.md
 ```
 
@@ -57,7 +57,6 @@ placa-qr/
 1. **Instalar dependências:**
    ```bash
    npm install
-   cd web && npm install && cd ..
    ```
 
 2. **Compilar o Front-end:**
@@ -82,20 +81,20 @@ placa-qr/
 ### 2. Configurar Secrets no Cloudflare Pages
 As variáveis secretas ficam protegidas no Cloudflare Pages e nunca são expostas ao front-end:
 ```bash
-npx wrangler pages secret put SUPABASE_SERVICE_ROLE_KEY --project-name placa-qr
+npx wrangler pages secret put SUPABASE_SERVICE_ROLE_KEY --project-name placaqr
 ```
 
 Para variáveis normais (acessíveis no build / functions):
 ```bash
-npx wrangler pages secret put SUPABASE_URL --project-name placa-qr
-npx wrangler pages secret put SUPABASE_ANON_KEY --project-name placa-qr
+npx wrangler pages secret put SUPABASE_URL --project-name placaqr
+npx wrangler pages secret put SUPABASE_ANON_KEY --project-name placaqr
 ```
 
 ---
 
 ## 🏷️ Como Configurar Domínio Próprio
 
-1. No painel do Cloudflare: acesse **Workers & Pages** > selecione **placa-qr**.
+1. No painel do Cloudflare: acesse **Workers & Pages** > selecione **placaqr**.
 2. Vá até a aba **Custom domains**.
 3. Clique em **Set up a domain** e digite o domínio desejado (ex: `avaliacao.seudominio.com.br`).
 4. O Cloudflare configurará o DNS e o certificado SSL automaticamente.

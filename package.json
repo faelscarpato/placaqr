@@ -1,11 +1,14 @@
 {
-  "name": "placa-qr",
+  "name": "placaqr",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "web"
+  ],
   "scripts": {
     "dev": "wrangler pages dev ./web/dist",
-    "build": "npm --prefix web run build",
-    "deploy": "npm run build && wrangler pages deploy ./web/dist --project-name placa-qr"
+    "build": "npm --prefix web install --include=dev && npm --prefix web run build",
+    "deploy": "npm run build && wrangler pages deploy ./web/dist --project-name placaqr"
   },
   "devDependencies": {
     "wrangler": "^4.151.1"
