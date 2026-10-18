@@ -90,6 +90,8 @@ npx wrangler pages secret put SUPABASE_URL --project-name placaqr
 npx wrangler pages secret put SUPABASE_ANON_KEY --project-name placaqr
 ```
 
+python gerar_qr.py --base-url https://placaqr.pages.dev/r --qtd 100 --lote L001 --prefixo ""
+
 ---
 
 ## 🏷️ Como Configurar Domínio Próprio

@@ -9,6 +9,7 @@ import { Dashboard } from './pages/admin/Dashboard';
 import { ActivatePlate } from './pages/admin/ActivatePlate';
 import { PlatesList } from './pages/admin/PlatesList';
 import { CompanyDetails } from './pages/admin/CompanyDetails';
+import { PrintPlate } from './pages/admin/PrintPlate';
 
 export const App: React.FC = () => {
   return (
@@ -25,6 +26,7 @@ export const App: React.FC = () => {
             <Route index element={<Dashboard />} />
             <Route path="ativar" element={<ActivatePlate />} />
             <Route path="placas" element={<PlatesList />} />
+            <Route path="imprimir" element={<PrintPlate />} />
             <Route path="empresas/:id" element={<CompanyDetails />} />
           </Route>
 

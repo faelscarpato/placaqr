@@ -11,7 +11,8 @@ import {
   PowerOff, 
   PlusCircle, 
   RefreshCw,
-  X
+  X,
+  Printer
 } from 'lucide-react';
 
 interface Company {
@@ -316,6 +317,14 @@ export const PlatesList: React.FC = () => {
                   >
                     Testar /r/{plate.code}
                   </a>
+
+                  <Link
+                    to={`/admin/imprimir?code=${plate.code}&empresa=${encodeURIComponent(plate.companies?.name || '')}`}
+                    className="p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-600 transition cursor-pointer"
+                    title="Imprimir placa"
+                  >
+                    <Printer className="w-4 h-4" />
+                  </Link>
 
                   <button
                     onClick={() => openEditModal(plate)}

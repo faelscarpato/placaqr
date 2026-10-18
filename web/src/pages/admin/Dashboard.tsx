@@ -10,7 +10,8 @@ import {
   ChevronRight, 
   Smartphone, 
   Layers,
-  ArrowUpRight
+  ArrowUpRight,
+  Printer
 } from 'lucide-react';
 
 interface DashboardMetrics {
@@ -98,7 +99,14 @@ export const Dashboard: React.FC = () => {
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Visão Geral</h1>
           <p className="text-xs text-slate-500">Métricas de estoque, ativações e telemetria de scans.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/admin/imprimir"
+            className="py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-[0.98] text-white text-xs font-bold shadow-md shadow-purple-600/20 flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            Imprimir Placa
+          </Link>
           <Link
             to="/admin/ativar"
             className="py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs font-bold shadow-md shadow-blue-600/20 flex items-center gap-1.5 transition cursor-pointer"
