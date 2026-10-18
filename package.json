@@ -1,0 +1,13 @@
+{
+  "name": "placa-qr",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev ./web/dist",
+    "build": "npm --prefix web run build",
+    "deploy": "npm run build && wrangler pages deploy ./web/dist --project-name placa-qr"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.1"
+  }
+}
