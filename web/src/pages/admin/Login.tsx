@@ -32,7 +32,7 @@ export const Login: React.FC = () => {
 
   const fillAdminCredentials = () => {
     setEmail('scarpatoweb@gmail.com');
-    setPassword('Rs9546@Fael');
+    setPassword('');
     setErrorMsg(null);
   };
 
