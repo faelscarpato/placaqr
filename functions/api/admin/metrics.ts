@@ -40,24 +40,95 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     });
   }
 
+  const serviceRoleKey = context.env.SUPABASE_SERVICE_ROLE_KEY;
+  const authHeader = context.request.headers.get('Authorization') || '';
+  const userToken = authHeader.replace('Bearer ', '').trim();
+
   try {
-    const serviceRoleKey = context.env.SUPABASE_SERVICE_ROLE_KEY;
+    // 1. Tenta via RPC usando o token do usuário admin ou service_role
     const rpcRes = await fetch(`${context.env.SUPABASE_URL}/rest/v1/rpc/get_admin_dashboard_metrics`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         apikey: serviceRoleKey,
-        Authorization: `Bearer ${serviceRoleKey}`,
+        Authorization: `Bearer ${userToken || serviceRoleKey}`,
       },
     });
 
-    if (!rpcRes.ok) {
-      const errText = await rpcRes.text();
-      return new Response(JSON.stringify({ error: errText }), { status: 500 });
+    if (rpcRes.ok) {
+      const data = await rpcRes.json();
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      });
     }
 
-    const data = await rpcRes.json();
-    return new Response(JSON.stringify(data), {
+    // 2. Fallback resiliente direto pelas tabelas (ignora RLS com service_role)
+    const [platesRes, compRes, scansRes] = await Promise.all([
+      fetch(`${context.env.SUPABASE_URL}/rest/v1/plates?select=status,activated_at`, {
+        headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+      }),
+      fetch(`${context.env.SUPABASE_URL}/rest/v1/companies?select=id`, {
+        headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+      }),
+      fetch(`${context.env.SUPABASE_URL}/rest/v1/scans?select=scanned_at`, {
+        headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+      }),
+    ]);
+
+    const plates: any[] = platesRes.ok ? await platesRes.json() : [];
+    const companies: any[] = compRes.ok ? await compRes.json() : [];
+    const scans: any[] = scansRes.ok ? await scansRes.json() : [];
+
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const sevenDaysAgo = now.getTime() - 7 * 24 * 60 * 60 * 1000;
+    const thirtyDaysAgo = now.getTime() - 30 * 24 * 60 * 60 * 1000;
+
+    let plates_stock = 0;
+    let plates_active = 0;
+    let plates_disabled = 0;
+    let sold_this_month = 0;
+
+    for (const p of plates) {
+      if (p.status === 'stock') plates_stock++;
+      else if (p.status === 'active') {
+        plates_active++;
+        if (p.activated_at && new Date(p.activated_at).getTime() >= startOfMonth) {
+          sold_this_month++;
+        }
+      } else if (p.status === 'disabled') {
+        plates_disabled++;
+      }
+    }
+
+    let scans_today = 0;
+    let scans_7d = 0;
+    let scans_30d = 0;
+
+    for (const s of scans) {
+      const scanTime = new Date(s.scanned_at).getTime();
+      if (scanTime >= startOfDay) scans_today++;
+      if (scanTime >= sevenDaysAgo) scans_7d++;
+      if (scanTime >= thirtyDaysAgo) scans_30d++;
+    }
+
+    const calculated = {
+      plates_stock,
+      plates_active,
+      plates_disabled,
+      sold_this_month,
+      total_companies: companies.length,
+      scans_today,
+      scans_7d,
+      scans_30d,
+    };
+
+    return new Response(JSON.stringify(calculated), {
       status: 200,
       headers: {
         'Content-Type': 'application/json; charset=utf-8',

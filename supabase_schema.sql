@@ -68,7 +68,7 @@ alter table public.companies enable row level security;
 alter table public.plates enable row level security;
 alter table public.scans enable row level security;
 
--- Função para checar permissão de Admin (via app_metadata ou e-mail admin)
+-- Função para checar permissão de Admin (via service_role, app_metadata ou e-mail admin)
 create or replace function public.is_admin()
 returns boolean
 language sql
@@ -76,7 +76,9 @@ stable
 security definer
 as $$
   select coalesce(
-    (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+    auth.role() = 'service_role'
+    or (auth.jwt() ->> 'role') = 'service_role'
+    or (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
     or lower(auth.jwt() ->> 'email') = 'scarpatoweb@gmail.com',
     false
   );

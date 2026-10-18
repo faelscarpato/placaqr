@@ -3,7 +3,7 @@
 Gerador de lote de QR Codes para placas de avaliação.
 Uso:
     pip install segno
-    python gerar_qr.py --base-url https://seudominio.com/r --qtd 100 --lote L001 --prefixo ""
+    python gerar_qr.py --base-url https://placaqr.pages.dev/r --qtd 100 --lote L001 --prefixo ""
 
 Saídas (pasta ./saida_<lote>/):
     svg/<CODIGO>.svg   -> vetorial, arraste no Illustrator (Vincular/Incorporar)
@@ -24,7 +24,7 @@ def gerar_codigo(tam, prefixo=""):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base-url", required=True, help="Ex: https://seudominio.com/r (sem barra final)")
+    ap.add_argument("--base-url", required=True, help="Ex: https://placaqr.pages.dev/r (sem barra final)")
     ap.add_argument("--qtd", type=int, default=50)
     ap.add_argument("--lote", default="L001")
     ap.add_argument("--tam", type=int, default=8, help="Tamanho do código (padrão 8)")
