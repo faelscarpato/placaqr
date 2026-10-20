@@ -146,7 +146,7 @@ export function generatePlateSvgString(data: PlateData): string {
     emblemSection = `
       <!-- LOGOTIPO OFICIAL DO PIX (BANCO CENTRAL DO BRASIL - VETOR OFICIAL) -->
       <g id="pix-official-logo" transform="translate(168.08, 86)">
-        <svg viewBox="0 0 318.36 112.63" width="240" height="85">
+        <svg viewBox="0 0 318.36 112.63" width="200" height="71">
           <g id="OBJECTS">
             <path fill="${palette.pixColor1}" d="M217.52,11.34c-1.16,1.17-2.69,1.2-3.79.1l-3.48-3.46c-1.13-1.13-1.12-2.61,0-3.73l3.48-3.46c1.09-1.08,2.62-1.05,3.68.03l3.63,3.67c.87.88.88,2.38,0,3.26l-3.54,3.59Z"/>
             <path fill="${palette.pixColor1}" d="M88.66,83.29h-6c-3.08.02-5.92-.88-8.13-3.08l-16.11-16.01c-2.55-2.54-7.4-2.71-9.99-.13l-15.94,15.84c-2.23,2.22-4.96,3.45-8.16,3.44h-7.52s-12.42-12.5-12.42-12.5c-5.88-5.91-5.82-15.66.05-21.57l12.37-12.43h6.88c2.92.02,5.87.64,8.02,2.78l16.26,16.17c2.87,2.86,7.64,3.06,10.57.14l16.25-16.15c2.12-2.11,4.94-2.86,7.86-2.88l5.91-.04,12.2,12.22c6.16,6.18,5.89,16.19-.23,22.32l-11.86,11.88Z"/>
