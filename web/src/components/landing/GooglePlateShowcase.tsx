@@ -29,7 +29,7 @@ export const GooglePlateShowcase: React.FC = () => {
 
   // Link do WhatsApp de Vendas
   // Pode ser personalizado pelo lojista ou usar o padrão da empresa
-  const whatsappNumber = '5511999999999'; // Número comercial padrão
+  const whatsappNumber = '5519995466902'; // Número comercial padrão
   const whatsappMessage = encodeURIComponent(
     'Olá! Vi a Placa de Avaliação Inteligente do Google no site e quero encomendar para a minha empresa.'
   );
