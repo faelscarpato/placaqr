@@ -13,19 +13,52 @@ body {
   color: #0f172a;
 }
 
+/* Otimização para Impressão com @media print */
 @media print {
   @page {
-    size: A5 portrait;
-    margin: 0;
+    size: A4 portrait;
+    margin: 10mm;
   }
+
   body {
-    background: white !important;
+    background: #ffffff !important;
     margin: 0 !important;
     padding: 0 !important;
+    color: #000000 !important;
   }
-  header, nav, footer, .print\:hidden {
+
+  /* Oculta tudo que não for a placa durante a impressão */
+  header, 
+  nav, 
+  footer, 
+  .print\:hidden,
+  .no-print {
     display: none !important;
   }
+
+  /* Centraliza a placa na folha A4 com proporção perfeita para recorte 10x15cm ou A5 */
+  .printable-plate-sheet {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 95vh !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .printable-plate-sheet svg {
+    max-width: 148mm !important; /* Tamanho A5 exato */
+    max-height: 210mm !important;
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: none !important;
+    filter: none !important;
+  }
+
   .print-plate-container {
     border: none !important;
     box-shadow: none !important;
