@@ -12,6 +12,7 @@ import {
 import { PixGenerator } from '../components/landing/PixGenerator';
 import { WifiGenerator } from '../components/landing/WifiGenerator';
 import { GooglePlateShowcase } from '../components/landing/GooglePlateShowcase';
+import { trackTabVisit } from '../utils/analytics';
 
 type ActiveTab = 'pix' | 'wifi' | 'google';
 
@@ -22,23 +23,23 @@ export const Home: React.FC = () => {
     ['pix', 'wifi', 'google'].includes(initialTab) ? initialTab : 'pix'
   );
 
-  // Mantém a URL sincronizada com a aba ativa
+  // Mantém a URL sincronizada com a aba ativa e dispara evento no Google Analytics 4
   const handleTabChange = (newTab: ActiveTab) => {
     setActiveTab(newTab);
     setSearchParams({ tab: newTab });
-
-    if (window.gtag) {
-      window.gtag('event', 'select_content', {
-        content_type: 'tab',
-        item_id: newTab,
-      });
-    }
+    trackTabVisit(newTab);
   };
+
+  // Dispara evento inicial no GA4 ao carregar a página
+  useEffect(() => {
+    trackTabVisit(activeTab);
+  }, []);
 
   useEffect(() => {
     const param = searchParams.get('tab') as ActiveTab;
     if (param && ['pix', 'wifi', 'google'].includes(param) && param !== activeTab) {
       setActiveTab(param);
+      trackTabVisit(param);
     }
   }, [searchParams]);
 

@@ -13,6 +13,7 @@ import {
   Award
 } from 'lucide-react';
 import rawModeloSvg from '../../assets/MODELO.svg?raw';
+import { trackGooglePlateCta } from '../../utils/analytics';
 
 declare global {
   interface Window {
@@ -42,6 +43,7 @@ export const GooglePlateShowcase: React.FC = () => {
         clients_per_day: clientsPerDay,
       });
     }
+    trackGooglePlateCta(clientsPerDay);
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
 

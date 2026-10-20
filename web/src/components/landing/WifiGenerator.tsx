@@ -23,6 +23,8 @@ import {
   type PlateTheme 
 } from './PlateSvgCanvas';
 import { printPlateSvg } from '../../utils/printPlate';
+import { LeadCaptureModal } from './LeadCaptureModal';
+import { trackPlatePrint, trackPlateDownload } from '../../utils/analytics';
 
 declare global {
   interface Window {
@@ -47,6 +49,10 @@ export const WifiGenerator: React.FC = () => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copiedData, setCopiedData] = useState<boolean>(false);
   const [isExportingPng, setIsExportingPng] = useState<boolean>(false);
+
+  // Estados da Modal de Lead
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState<boolean>(false);
+  const [pendingAction, setPendingAction] = useState<'print' | 'download' | null>(null);
 
   // Gera o Payload Universal de Wi-Fi
   const wifiData: GeneratedWifi = useMemo(() => {
@@ -126,19 +132,36 @@ export const WifiGenerator: React.FC = () => {
     }
   };
 
-  // Dispara a impressão isolada da placa
-  const handlePrint = () => {
-    if (window.gtag) {
-      window.gtag('event', 'print_wifi_plate', {
-        event_category: 'wifi_generator',
-        theme,
-      });
+  // Abre a modal de lead antes de imprimir
+  const handleTriggerPrint = () => {
+    setPendingAction('print');
+    setIsLeadModalOpen(true);
+  };
+
+  // Abre a modal de lead antes de baixar a imagem
+  const handleTriggerDownload = () => {
+    setPendingAction('download');
+    setIsLeadModalOpen(true);
+  };
+
+  // Executa a ação confirmada ou pulada na modal
+  const handleProceedAction = () => {
+    if (pendingAction === 'print') {
+      executePrint();
+    } else if (pendingAction === 'download') {
+      executeDownloadPng();
     }
+    setPendingAction(null);
+  };
+
+  // Dispara a impressão isolada da placa
+  const executePrint = () => {
+    trackPlatePrint('wifi', theme, companyName);
     printPlateSvg(fullSvgString);
   };
 
   // Baixa em PNG de altíssima definição (1190 x 1684 pixels - 300 DPI)
-  const handleDownloadPng = async () => {
+  const executeDownloadPng = async () => {
     if (!fullSvgString || isExportingPng) return;
     setIsExportingPng(true);
 
@@ -168,11 +191,7 @@ export const WifiGenerator: React.FC = () => {
         URL.revokeObjectURL(url);
         setIsExportingPng(false);
 
-        if (window.gtag) {
-          window.gtag('event', 'download_wifi_png', {
-            event_category: 'wifi_generator',
-          });
-        }
+        trackPlateDownload('wifi', theme, companyName);
       };
 
       img.onerror = () => {
@@ -437,7 +456,7 @@ export const WifiGenerator: React.FC = () => {
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-3">
           <button
             type="button"
-            onClick={handlePrint}
+            onClick={handleTriggerPrint}
             className="w-full py-4 px-6 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-base shadow-lg shadow-sky-600/25 transition-all flex items-center justify-center gap-3 cursor-pointer active:scale-[0.98]"
           >
             <Printer className="w-5 h-5" />
@@ -446,7 +465,7 @@ export const WifiGenerator: React.FC = () => {
 
           <button
             type="button"
-            onClick={handleDownloadPng}
+            onClick={handleTriggerDownload}
             disabled={isExportingPng}
             className="w-full py-3.5 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:opacity-50"
           >
@@ -454,6 +473,16 @@ export const WifiGenerator: React.FC = () => {
             {isExportingPng ? 'Gerando Imagem...' : 'Baixar Imagem em Alta Resolução (PNG 300 DPI)'}
           </button>
         </div>
+
+        {/* Modal de Captação de Lead Opcional */}
+        <LeadCaptureModal
+          isOpen={isLeadModalOpen}
+          onClose={() => setIsLeadModalOpen(false)}
+          sourcePlate="wifi"
+          action={pendingAction || 'download'}
+          onProceed={handleProceedAction}
+          companyNameDefault={companyName}
+        />
       </div>
     </div>
   );
