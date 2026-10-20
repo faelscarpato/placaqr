@@ -13,58 +13,56 @@ body {
   color: #0f172a;
 }
 
-/* Otimização para Impressão com @media print */
+/* Otimização Rigorosa para Impressão com @media print */
 @media print {
   @page {
     size: A4 portrait;
     margin: 10mm;
   }
 
-  body {
+  /* Oculta tudo por padrão */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Exibe exclusivamente o elemento printable-plate-area se for acionado diretamente */
+  #printable-plate-area,
+  #printable-plate-area * {
+    visibility: visible !important;
+  }
+
+  #printable-plate-area {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     background: #ffffff !important;
     margin: 0 !important;
     padding: 0 !important;
-    color: #000000 !important;
+    z-index: 999999 !important;
   }
 
-  /* Oculta tudo que não for a placa durante a impressão */
-  header, 
-  nav, 
-  footer, 
-  .print\:hidden,
-  .no-print {
-    display: none !important;
-  }
-
-  /* Centraliza a placa na folha A4 com proporção perfeita para recorte 10x15cm ou A5 */
-  .printable-plate-sheet {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-height: 95vh !important;
-    margin: 0 auto !important;
-    page-break-inside: avoid !important;
-    border: none !important;
-    box-shadow: none !important;
-    background: transparent !important;
-  }
-
-  .printable-plate-sheet svg {
-    max-width: 148mm !important; /* Tamanho A5 exato */
-    max-height: 210mm !important;
+  #printable-plate-area svg {
+    max-width: 145mm !important;
+    max-height: 205mm !important;
     width: 100% !important;
     height: auto !important;
     box-shadow: none !important;
     filter: none !important;
   }
 
-  .print-plate-container {
-    border: none !important;
-    box-shadow: none !important;
-    width: 148mm !important;
-    height: 210mm !important;
-    margin: 0 auto !important;
-    page-break-inside: avoid !important;
+  header, 
+  nav, 
+  footer, 
+  button, 
+  input, 
+  .print\:hidden,
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
   }
 }

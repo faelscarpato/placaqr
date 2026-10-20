@@ -9,7 +9,6 @@ import {
   Wifi, 
   Eye, 
   EyeOff,
-  FileCode,
   Image as ImageIcon
 } from 'lucide-react';
 import { 
@@ -23,6 +22,7 @@ import {
   type WifiPlateData, 
   type PlateTheme 
 } from './PlateSvgCanvas';
+import { printPlateSvg } from '../../utils/printPlate';
 
 declare global {
   interface Window {
@@ -44,7 +44,7 @@ export const WifiGenerator: React.FC = () => {
   const [showPasswordText, setShowPasswordText] = useState<boolean>(true);
 
   // Estados de Controle
-  const [qrPathD, setQrPathD] = useState<string>('');
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copiedData, setCopiedData] = useState<boolean>(false);
   const [isExportingPng, setIsExportingPng] = useState<boolean>(false);
 
@@ -58,29 +58,32 @@ export const WifiGenerator: React.FC = () => {
     });
   }, [ssid, password, encryption, hidden]);
 
-  // Gera o caminho vetorial (path 'd') do QR Code sempre que o payload muda
+  // Gera o QR Code em alta definição (800x800) em tempo real
   useEffect(() => {
     let active = true;
 
-    async function generateQrPath() {
+    async function generateQrImage() {
       if (!wifiData.payload) return;
       try {
-        const svgString = await QRCode.toString(wifiData.payload, {
-          type: 'svg',
-          margin: 0,
+        const dataUrl = await QRCode.toDataURL(wifiData.payload, {
+          width: 800,
+          margin: 1,
           errorCorrectionLevel: 'M',
+          color: {
+            dark: '#0F172A',
+            light: '#FFFFFF',
+          },
         });
 
-        const match = svgString.match(/d="([^"]+)"/);
-        if (match && active) {
-          setQrPathD(match[1]);
+        if (active) {
+          setQrDataUrl(dataUrl);
         }
       } catch (err) {
         console.error('Erro ao gerar QR Code do Wi-Fi:', err);
       }
     }
 
-    generateQrPath();
+    generateQrImage();
     return () => {
       active = false;
     };
@@ -90,7 +93,7 @@ export const WifiGenerator: React.FC = () => {
   const plateData: WifiPlateData = useMemo(() => {
     return {
       type: 'wifi',
-      qrPathD,
+      qrDataUrl,
       companyName,
       ssid: wifiData.ssid,
       password: wifiData.password,
@@ -98,7 +101,7 @@ export const WifiGenerator: React.FC = () => {
       showPasswordText,
       theme,
     };
-  }, [qrPathD, companyName, wifiData, showPasswordText, theme]);
+  }, [qrDataUrl, companyName, wifiData, showPasswordText, theme]);
 
   // SVG completo para download ou conversão
   const fullSvgString = useMemo(() => {
@@ -123,7 +126,7 @@ export const WifiGenerator: React.FC = () => {
     }
   };
 
-  // Dispara a impressão otimizada via navegador
+  // Dispara a impressão isolada da placa
   const handlePrint = () => {
     if (window.gtag) {
       window.gtag('event', 'print_wifi_plate', {
@@ -131,27 +134,7 @@ export const WifiGenerator: React.FC = () => {
         theme,
       });
     }
-    window.print();
-  };
-
-  // Baixa o arquivo vetorial .SVG da placa
-  const handleDownloadSvg = () => {
-    if (!fullSvgString) return;
-    const blob = new Blob([fullSvgString], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `placa_wifi_${(companyName || 'minha_loja').toLowerCase().replace(/\s+/g, '_')}.svg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    if (window.gtag) {
-      window.gtag('event', 'download_wifi_svg', {
-        event_category: 'wifi_generator',
-      });
-    }
+    printPlateSvg(fullSvgString);
   };
 
   // Baixa em PNG de altíssima definição (1190 x 1684 pixels - 300 DPI)
@@ -195,7 +178,7 @@ export const WifiGenerator: React.FC = () => {
       img.onerror = () => {
         setIsExportingPng(false);
         URL.revokeObjectURL(url);
-        alert('Falha ao renderizar a imagem PNG. Tente exportar em SVG.');
+        alert('Falha ao renderizar a imagem PNG. Tente novamente.');
       };
 
       img.src = url;
@@ -436,7 +419,7 @@ export const WifiGenerator: React.FC = () => {
               Pré-visualização da Placa Wi-Fi (Display 10x15cm / A5)
             </span>
             <span className="text-[11px] font-semibold text-slate-500 bg-white px-2.5 py-1 rounded-full border border-slate-200">
-              Vetor 300 DPI
+              300 DPI
             </span>
           </div>
 
@@ -450,7 +433,7 @@ export const WifiGenerator: React.FC = () => {
           </p>
         </div>
 
-        {/* Botões de Ação: Imprimir e Exportar */}
+        {/* Botões de Ação: Imprimir e Baixar PNG */}
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-3">
           <button
             type="button"
@@ -461,26 +444,15 @@ export const WifiGenerator: React.FC = () => {
             Imprimir Placa Agora (Grátis)
           </button>
 
-          <div className="grid grid-cols-2 gap-3 pt-1">
-            <button
-              type="button"
-              onClick={handleDownloadPng}
-              disabled={isExportingPng}
-              className="py-3 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:opacity-50"
-            >
-              <ImageIcon className="w-4 h-4 text-slate-500" />
-              {isExportingPng ? 'Gerando...' : 'Baixar Imagem PNG'}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDownloadSvg}
-              className="py-3 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
-            >
-              <FileCode className="w-4 h-4 text-slate-500" />
-              Baixar Vetor SVG
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleDownloadPng}
+            disabled={isExportingPng}
+            className="w-full py-3.5 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:opacity-50"
+          >
+            <ImageIcon className="w-4 h-4 text-slate-500" />
+            {isExportingPng ? 'Gerando Imagem...' : 'Baixar Imagem em Alta Resolução (PNG 300 DPI)'}
+          </button>
         </div>
       </div>
     </div>

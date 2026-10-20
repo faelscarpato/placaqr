@@ -4,7 +4,7 @@ export type PlateTheme = 'crystal' | 'brand' | 'dark-gold';
 
 export interface PixPlateData {
   type: 'pix';
-  qrPathD: string;
+  qrDataUrl: string;
   companyName: string;
   merchantName: string;
   merchantCity: string;
@@ -17,7 +17,7 @@ export interface PixPlateData {
 
 export interface WifiPlateData {
   type: 'wifi';
-  qrPathD: string;
+  qrDataUrl: string;
   companyName: string;
   ssid: string;
   password?: string;
@@ -38,7 +38,11 @@ interface PlateSvgCanvasProps {
  * Renderizador de Placas Vetoriais de Alta Definição (ViewBox 576.16 x 819.45)
  * Utiliza o mesmo padrão de coordenadas, proporções e acabamento em acrílico do MODELO.svg
  */
-export const PlateSvgCanvas: React.FC<PlateSvgCanvasProps> = ({ data, className = '', id = 'plate-svg' }) => {
+export const PlateSvgCanvas: React.FC<PlateSvgCanvasProps> = ({ 
+  data, 
+  className = '', 
+  id = 'printable-plate-area' 
+}) => {
   const svgContent = useMemo(() => {
     return generatePlateSvgString(data);
   }, [data]);
@@ -53,8 +57,8 @@ export const PlateSvgCanvas: React.FC<PlateSvgCanvasProps> = ({ data, className 
 };
 
 /**
- * Função pura que gera a string SVG completa para exibição, download SVG,
- * conversão para PNG 300 DPI e impressão.
+ * Função pura que gera a string SVG completa para exibição,
+ * conversão para PNG 300 DPI e impressão isolada.
  */
 export function generatePlateSvgString(data: PlateData): string {
   const isPix = data.type === 'pix';
@@ -69,14 +73,14 @@ export function generatePlateSvgString(data: PlateData): string {
       acrylicGloss: 'rgba(255, 255, 255, 0.85)',
       primaryText: '#0F172A',
       secondaryText: '#475569',
-      accentColor: isPix ? '#0D9488' : '#0284C7',
+      accentColor: isPix ? '#39B0A3' : '#0284C7',
       accentBg: isPix ? '#F0FDFA' : '#F0F9FF',
       accentBorder: isPix ? '#99F6E4' : '#BAE6FD',
       qrFrameBorder: '#94A3B8',
-      qrFrameBg: '#FFFFFF',
       badgeBg: '#F1F5F9',
-      badgeText: '#334155',
       cutGuide: '#94A3B8',
+      pixColor1: '#39b0a3',
+      pixColor2: '#475569',
     },
     brand: {
       bgFill: isPix ? 'url(#pix-bg-gradient)' : 'url(#wifi-bg-gradient)',
@@ -88,10 +92,10 @@ export function generatePlateSvgString(data: PlateData): string {
       accentBg: 'rgba(255, 255, 255, 0.15)',
       accentBorder: 'rgba(255, 255, 255, 0.3)',
       qrFrameBorder: '#FFFFFF',
-      qrFrameBg: '#FFFFFF',
       badgeBg: 'rgba(0, 0, 0, 0.2)',
-      badgeText: '#FFFFFF',
       cutGuide: 'rgba(255, 255, 255, 0.4)',
+      pixColor1: '#FFFFFF',
+      pixColor2: '#E0F2FE',
     },
     'dark-gold': {
       bgFill: 'url(#gold-bg-gradient)',
@@ -103,10 +107,10 @@ export function generatePlateSvgString(data: PlateData): string {
       accentBg: 'rgba(245, 158, 11, 0.15)',
       accentBorder: 'rgba(245, 158, 11, 0.4)',
       qrFrameBorder: '#F59E0B',
-      qrFrameBg: '#FFFFFF',
       badgeBg: 'rgba(245, 158, 11, 0.12)',
-      badgeText: '#FDE68A',
       cutGuide: '#D97706',
+      pixColor1: '#FBBF24',
+      pixColor2: '#FDE68A',
     },
   }[theme];
 
@@ -114,10 +118,10 @@ export function generatePlateSvgString(data: PlateData): string {
   const headerContent = company
     ? `
       <g id="header-company">
-        <rect x="80" y="36" width="416.16" height="42" rx="10" fill="${palette.accentBg}" stroke="${palette.accentBorder}" stroke-width="1.5" />
+        <rect x="80" y="32" width="416.16" height="42" rx="10" fill="${palette.accentBg}" stroke="${palette.accentBorder}" stroke-width="1.5" />
         <text
           x="288.08"
-          y="63"
+          y="59"
           font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
           font-size="20"
           font-weight="800"
@@ -131,7 +135,7 @@ export function generatePlateSvgString(data: PlateData): string {
     `
     : `
       <g id="header-empty">
-        <line x1="160" y1="56" x2="416.16" y2="56" stroke="${palette.cardBorder}" stroke-width="1" stroke-dasharray="4,4" opacity="0.6" />
+        <line x1="160" y1="52" x2="416.16" y2="52" stroke="${palette.cardBorder}" stroke-width="1" stroke-dasharray="4,4" opacity="0.6" />
       </g>
     `;
 
@@ -140,29 +144,53 @@ export function generatePlateSvgString(data: PlateData): string {
   if (isPix) {
     const pixData = data as PixPlateData;
     emblemSection = `
-      <!-- EMBLEMA PIX OFICIAL -->
-      <g id="pix-emblem" transform="translate(188.08, 90)">
-        <!-- Símbolo Pix Vetorial -->
-        <g transform="translate(10, 0) scale(0.9)">
-          <path
-            d="M13.79 36.21L25 25L13.79 13.79C12.35 12.35 9.95 12.35 8.51 13.79L3.79 18.51C2.35 19.95 2.35 22.35 3.79 23.79L25 45L46.21 23.79C47.65 22.35 47.65 19.95 46.21 18.51L41.49 13.79C40.05 12.35 37.65 12.35 36.21 13.79L25 25L36.21 36.21C37.65 37.65 40.05 37.65 41.49 36.21L46.21 31.49C47.65 30.05 47.65 27.65 46.21 26.21L25 5L3.79 26.21C2.35 27.65 2.35 30.05 3.79 31.49L8.51 36.21C9.95 37.65 12.35 37.65 13.79 36.21Z"
-            fill="${theme === 'brand' ? '#FFFFFF' : theme === 'dark-gold' ? '#FBBF24' : '#32BCAD'}"
-          />
-        </g>
-        <!-- Tipografia 'pix' -->
-        <g transform="translate(68, 5)" fill="${theme === 'brand' ? '#FFFFFF' : theme === 'dark-gold' ? '#FBBF24' : '#32BCAD'}">
-          <path d="M0 8H7C10.5 8 13 10.5 13 14C13 17.5 10.5 20 7 20H3.8V27H0V8ZM3.8 16.5H6.8C8.2 16.5 9.2 15.6 9.2 14C9.2 12.4 8.2 11.5 6.8 11.5H3.8V16.5Z" />
-          <path d="M19 12H23V27H19V12ZM21 6.5C22.2 6.5 23.2 7.4 23.2 8.6C23.2 9.8 22.2 10.7 21 10.7C19.8 10.7 18.8 9.8 18.8 8.6C18.8 7.4 19.8 6.5 21 6.5Z" />
-          <path d="M28 12H32.5L35.8 17.2L39.1 12H43.6L38.3 19.2L43.8 27H39.2L35.8 21.8L32.4 27H28L33.3 19.2L28 12Z" />
-        </g>
+      <!-- LOGOTIPO OFICIAL DO PIX (BANCO CENTRAL DO BRASIL - VETOR OFICIAL) -->
+      <g id="pix-official-logo" transform="translate(168.08, 86)">
+        <svg viewBox="0 0 318.36 112.63" width="240" height="85">
+          <g id="OBJECTS">
+            <path fill="${palette.pixColor1}" d="M217.52,11.34c-1.16,1.17-2.69,1.2-3.79.1l-3.48-3.46c-1.13-1.13-1.12-2.61,0-3.73l3.48-3.46c1.09-1.08,2.62-1.05,3.68.03l3.63,3.67c.87.88.88,2.38,0,3.26l-3.54,3.59Z"/>
+            <path fill="${palette.pixColor1}" d="M88.66,83.29h-6c-3.08.02-5.92-.88-8.13-3.08l-16.11-16.01c-2.55-2.54-7.4-2.71-9.99-.13l-15.94,15.84c-2.23,2.22-4.96,3.45-8.16,3.44h-7.52s-12.42-12.5-12.42-12.5c-5.88-5.91-5.82-15.66.05-21.57l12.37-12.43h6.88c2.92.02,5.87.64,8.02,2.78l16.26,16.17c2.87,2.86,7.64,3.06,10.57.14l16.25-16.15c2.12-2.11,4.94-2.86,7.86-2.88l5.91-.04,12.2,12.22c6.16,6.18,5.89,16.19-.23,22.32l-11.86,11.88Z"/>
+            <path fill="${palette.pixColor1}" d="M64.15,107.74c-6.08,6.07-16.02,6.72-22.15.63l-20.53-20.39c5.02.16,9.74-.43,13.21-3.88l16.77-16.64c1.23-.89,2.79-.85,3.91.16l16.08,16.01c3.35,3.34,7.85,4.49,12.59,4.26l-19.89,19.85Z"/>
+            <path fill="${palette.pixColor1}" d="M55.51,52.42c-1.27,1.37-3.07,1.31-4.28.1l-15.39-15.38c-3.92-3.92-8.92-5.44-14.54-4.77l20.02-19.99c6.42-6.41,16.49-6.22,22.85.14l19.82,19.83c-4.98-.35-9.51,1.15-13.02,4.64l-15.48,15.43Z"/>
+            <path fill="${palette.pixColor2}" d="M318.35,74.86v1.57c-.17.15-1.1,1.11-1.57,1.12l-6.69.05c-5.08.04-9.61-1.75-13.15-5.29l-19.21-19.15c-1.61-1.61-4.34-1.61-5.94-.02l-19.57,19.47c-3.41,3.39-7.99,5.06-12.74,5.05l-8.28-.03c-1.12,0-1.81-1.36-1.66-2.31.14-.82,1.02-1.66,1.99-1.66h7.91c3.94.02,7.49-1.43,10.27-4.21l19.04-19c3.35-3.35,8.62-3.31,11.96.02l19.05,18.99c2.59,2.58,5.89,4.05,9.65,4.09l7.32.09c.51,0,1.44.97,1.61,1.21Z"/>
+            <path fill="${palette.pixColor2}" d="M318.36,18.31v1.53c-.16.16-1.09,1.16-1.55,1.16l-7.03.05c-4.03.03-7.4,1.51-10.17,4.27l-18.87,18.83c-3.36,3.35-8.63,3.37-11.99.02l-19.04-19c-2.66-2.66-6.13-4.17-9.92-4.18l-8.24-.02c-2.62-.04-2.68-3.88-.05-3.99,0,0,7.98,0,7.98,0,4.88,0,9.43,1.73,12.91,5.2l19.04,18.99c1.88,1.88,4.55,2.07,6.49.13l19.21-19.14c3.47-3.46,8.04-5.14,12.95-5.11l6.62.03c.5,0,1.48.96,1.67,1.23Z"/>
+            <path fill="${palette.pixColor2}" d="M191.15,54.48v-14.11c0-11.17-9.29-19.36-20.31-19.37h-17.61c-10.68-.02-20.11,8.07-20.12,19.07l-.07,64.75c0,1.34-.75,2.18-1.85,2.25-1.25.07-2.15-.78-2.15-2.24l.1-65.12c.02-12.36,10.56-22.63,22.74-22.61l20.56.03c12.44.02,22.69,10.52,22.68,22.88v14.92c-.01,12.07-10.05,22.37-22.3,22.72l-28.19.11c-2.63-.07-2.62-3.95,0-3.98,0,0,27.19-.04,27.19-.04,10.58-.01,19.3-8.61,19.31-19.28Z"/>
+            <path fill="${palette.pixColor2}" d="M213.65,76.19l-.02-48.36c0-3.95-3.22-6.8-6.96-6.8h-8.29c-1.02,0-1.91-1.12-1.88-1.98.03-1.2.96-2,2.2-2.01l7.6-.03c6.43-.02,11.34,4.7,11.34,11.15l-.02,47.91c.01,2.48-3.79,2.79-3.97.13Z"/>
+            <g>
+              <path fill="${palette.pixColor1}" d="M230.24,100.83c.58.49,1.24,1.42,1.19,2.14-.04.61-1.01,1.72-1.67,1.74l-6.17.17v-7.81s5.71.12,5.71.12c.55.01,1.57.9,1.68,1.44.11.61-.31,1.53-.75,2.2ZM229.06,98.79c-.65-.4-2.43-.55-3.21-.42-.43.07-.83,1.47-.47,1.7.97.58,2.46.23,3.5.09.29-.04.43-1.21.18-1.37ZM229.45,102.1c-.75-.61-2.68-.62-3.61-.5-.49.06-.86,1.54-.42,1.75.86.39,2.53.18,3.49.15.37-.02,1.03-1.01.54-1.41Z"/>
+              <path fill="${palette.pixColor1}" d="M275.8,103.43l1.55-.24c.28-.04.23.84.12,1.1-.21.48-4.53,1.34-6.32-.01-2-1.51-1.93-5.15.21-6.61,1.37-.93,4.02-.72,5.49-.67.39.01.77,1.38.4,1.37-1.66.08-4.22-.44-5.29,1.01-.58.85-.59,2.57.17,3.49.67.82,2.39.75,3.68.55Z"/>
+              <path fill="${palette.pixColor1}" d="M284.03,103.66l1.29-.12c.21-.02.09.58.04,1.06-3.15.66-7.75,1.02-6.6-3.73.68-2.37,4.71-2.35,6.13-1.14.48.41.71,1.55.84,2.59l-5.63.09c.68,1.78,2.32,1.39,3.92,1.24ZM284.16,101.34c-.6-1.54-1.53-1.36-2.45-1.31-.53.03-1.07.44-1.6,1.25l4.05.06Z"/>
+              <path fill="${palette.pixColor1}" d="M262.83,99.26c1.82.56,1.93,2.52,1.55,3.9-.42,1.51-2.1,1.87-3.71,1.86s-3.2-.36-3.62-1.98c-.96-3.88,2.64-4.58,5.78-3.77ZM261.45,103.76c1.43-.21,1.6-1.39,1.38-2.37-.13-.57-.96-1.2-1.82-1.23s-1.93.24-2.21.75c-.32.59-.25,1.83.13,2.28s1.74.68,2.51.57Z"/>
+              <path fill="${palette.pixColor1}" d="M235.59,104.97c-1.21.07-2.39-.38-2.59-1.34-.24-1.12.6-2.21,1.89-2.23l3.41-.06c-.74-2.04-4.46-.76-4.44-1.26l.03-.92s4.49-.85,5.49.87c.62,1.07.34,3.49.34,4.7l-4.12.24ZM237.64,102.41c-.84-.1-2.85-.13-3.01.56-.2.86,1.51,1.07,2.22.84l1.33-.43c.22-.07-.31-.95-.55-.98Z"/>
+              <path fill="${palette.pixColor1}" d="M309.51,104.97c-1.19.07-2.33-.39-2.56-1.4s.66-2.15,1.84-2.18l3.45-.08c-.78-1.76-2.79-1.05-4.3-1.1-.21,0-.18-.6-.16-.83.06-.53,4.58-.94,5.53.61.67,1.09.36,3.52.36,4.72l-4.17.24ZM312.37,102.77c-1.51-.59-2.86-.53-4.05.11.76,1.5,3.17,1.39,4.05-.11Z"/>
+              <path fill="${palette.pixColor1}" d="M292.69,104.77c.14-3.33.46-5.41-3.73-4.08l-.08,4.15-1.57-.02v-5.65c3.45.43,6.08-1.31,7,1.54l.02,4.15-1.63-.08Z"/>
+              <path fill="${palette.pixColor1}" d="M247.24,104.81l-.17-4.25c-1.38-.33-2.57-.25-3.71.14l.04,4.13-1.62-.03v-5.67c2.83.34,6.74-.87,6.83,1.14l.21,4.55h-1.58Z"/>
+              <path fill="${palette.pixColor1}" d="M298.04,101.3l.33,2.2,2.27.3c-.16,1.58-1.72,1.29-2.74,1.08-2.14-.87-.99-3.86-1.43-4.12l-.97-.58c-.19-.12-.28-.72-.1-.85s.87-.3.95-.51l.5-1.32c.13-.35,1.34-.07,1.3.3-.03.33-.09,1.26.16,1.27l1.15.09c.2.02.88-.2.9,0l.05.96c.02.27-.51.25-.9.23l-.92-.05c-.25-.01-.59.74-.55,1.01Z"/>
+              <path fill="${palette.pixColor1}" d="M255.98,99.84c0,.99-2.5-.19-3.66.88-.44.41-.53,1.82-.24,2.33.34.6,1.79.77,2.58.64l1.19-.2c.22-.04.32.68.22.88-.3.6-3.92,1.13-5.14-.2-.9-.99-.89-2.87-.26-3.88.8-1.29,2.54-1.41,4.04-1.3l1.06.07c.21.01.21.56.21.77Z"/>
+              <polygon fill="${palette.pixColor1}" points="303.52 100.57 303.57 104.85 301.94 104.81 301.94 99.16 306.26 99.04 306.36 100.31 303.52 100.57"/>
+              <rect fill="${palette.pixColor1}" x="315.76" y="96.73" width="1.6" height="8.1"/>
+            </g>
+            <g>
+              <path fill="${palette.pixColor2}" d="M146.02,104.94l-1.22-.18c-.33-.05-.3,1.06-.3,1.39v.72c0,.16-.31.13-.66.1v-7.81s3.77-.14,3.77-.14c2.24-.09,3.09,1.67,2.81,3.57s-2.11,2.69-4.4,2.36ZM149.59,102.99c.28-.85.14-2.35-.59-2.92-1.04-.81-4.05-.28-4.29.14-.33.6-.36,2.97.02,3.71.28.55,4.22.99,4.86-.93Z"/>
+              <path fill="${palette.pixColor2}" d="M205.16,99.11c.01.71,3.6-1.11,5.28.74.65.72.8,2.23.4,3.4-.32.94-1.71,1.82-2.94,1.74l-3.46-.23.02-8.01c.32-.02.67-.07.67.12,0,.55.03,1.68.04,2.23ZM210.21,102.93c.26-.85.12-2.29-.58-2.86-.97-.8-3.87-.35-4.27.13-.35.42-.43,2.96.01,3.71.36.6,4.24.97,4.83-.99Z"/>
+              <polygon fill="${palette.pixColor2}" points="167.63 103.68 169.68 99.01 170.3 99.12 167.62 105.29 165.07 100.16 162.57 105.24 160.03 99.14 160.64 99.06 162.64 103.8 165.07 98.68 167.63 103.68"/>
+              <path fill="${palette.pixColor2}" d="M186.21,104.38c1.03.14,4.17-.22,4.17-.22-1.67,1.17-3.99,1.16-5.51.29-1.27-.72-1.25-2.66-.84-3.8.82-2.25,4.76-1.97,5.69-.85.43.51.6,1.57.64,2.35l-5.86.05c-.01,1.04.57,2.01,1.7,2.17ZM189.68,101.58c-.27-1.91-1.54-2-2.72-1.98-1.06.02-2.07.28-2.51,1.92l5.23.06Z"/>
+              <path fill="${palette.pixColor2}" d="M198.32,104.81c-2.69-.29-5.88,1.26-6.52-1.83-.39-1.92.44-4.05,2.64-3.93l3.17.17.15-2.61h.55s0,8.21,0,8.21ZM197.68,103.89l-.04-3.96c-1.45-.33-3.11-.6-4.36.2s-1.17,3.38.25,3.95c1.22.49,2.84.12,4.16-.19Z"/>
+              <path fill="${palette.pixColor2}" d="M173.6,104.38l4.18-.21c-1.67,1.16-3.97,1.15-5.49.27-1.26-.73-1.24-2.64-.84-3.74.85-2.32,4.73-2.03,5.69-.9.42.49.62,1.61.65,2.35l-5.87.05c0,1.03.62,1.78,1.66,2.17ZM177.1,101.58c-.23-1.9-1.54-1.98-2.73-1.98-1.03,0-2.03.3-2.48,1.91l5.21.06Z"/>
+              <path fill="${palette.pixColor2}" d="M157.12,99.2c1.87.52,2,2.3,1.73,3.78s-1.87,2.08-3.57,2.05-3.09-.57-3.39-2.22c-.23-1.29.02-3.06,1.67-3.58.9-.28,2.54-.31,3.55-.03ZM155.43,104.41c3.77.24,3.79-4.88.15-4.83-1.71-.05-2.98.58-3.04,2.17-.06,1.67.92,2.66,2.89,2.66Z"/>
+              <path fill="${palette.pixColor2}" d="M215.25,105.4c-.64,1.3-2.39,2.59-3.53,1.01.95.34,3.42-.37,2.85-1.56l-2.73-5.7.59-.16,2.7,4.97,2.59-4.97.61.14-3.09,6.26Z"/>
+              <path fill="${palette.pixColor2}" d="M181.49,99.83c-.66.19-1.11.79-1.12,1.48l-.03,3.52-.61.03-.06-4.12c-.01-.88.71-1.6,1.59-1.57l2.33.06-2.1.61Z"/>
+            </g>
+          </g>
+        </svg>
       </g>
 
       <!-- TÍTULO PRINCIPAL PIX -->
       <text
         x="288.08"
-        y="160"
+        y="182"
         font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-        font-size="28"
+        font-size="22"
         font-weight="900"
         letter-spacing="1"
         fill="${palette.primaryText}"
@@ -173,9 +201,9 @@ export function generatePlateSvgString(data: PlateData): string {
 
       <text
         x="288.08"
-        y="186"
+        y="204"
         font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-        font-size="14"
+        font-size="13"
         font-weight="500"
         fill="${palette.secondaryText}"
         text-anchor="middle"
@@ -188,12 +216,12 @@ export function generatePlateSvgString(data: PlateData): string {
           ? `
         <!-- BADGE VALOR DEFINIDO -->
         <g id="amount-badge">
-          <rect x="188.08" y="200" width="200" height="34" rx="17" fill="${palette.accentBg}" stroke="${palette.accentBorder}" stroke-width="1.5" />
+          <rect x="188.08" y="214" width="200" height="30" rx="15" fill="${palette.accentBg}" stroke="${palette.accentBorder}" stroke-width="1.5" />
           <text
             x="288.08"
-            y="223"
+            y="234"
             font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-            font-size="16"
+            font-size="15"
             font-weight="800"
             fill="${palette.accentColor}"
             text-anchor="middle"
@@ -209,8 +237,7 @@ export function generatePlateSvgString(data: PlateData): string {
     const wifiData = data as WifiPlateData;
     emblemSection = `
       <!-- EMBLEMA WI-FI VETORIAL -->
-      <g id="wifi-emblem" transform="translate(288.08, 108)">
-        <!-- Ondas de Sinal Wi-Fi Estilizadas -->
+      <g id="wifi-emblem" transform="translate(288.08, 102)">
         <circle cx="0" cy="18" r="4.5" fill="${palette.accentColor}" />
         <path d="M-15 9.5C-8.5 3 8.5 3 15 9.5" fill="none" stroke="${palette.accentColor}" stroke-width="4.5" stroke-linecap="round" />
         <path d="M-28 -1C-15.5 -11 15.5 -11 28 -1" fill="none" stroke="${palette.accentColor}" stroke-width="4.5" stroke-linecap="round" />
@@ -220,7 +247,7 @@ export function generatePlateSvgString(data: PlateData): string {
       <!-- TÍTULO PRINCIPAL WI-FI -->
       <text
         x="288.08"
-        y="160"
+        y="156"
         font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
         font-size="28"
         font-weight="900"
@@ -233,9 +260,9 @@ export function generatePlateSvgString(data: PlateData): string {
 
       <text
         x="288.08"
-        y="186"
+        y="180"
         font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-        font-size="14"
+        font-size="13"
         font-weight="500"
         fill="${palette.secondaryText}"
         text-anchor="middle"
@@ -245,10 +272,10 @@ export function generatePlateSvgString(data: PlateData): string {
 
       <!-- BADGE REDE SSID -->
       <g id="ssid-badge">
-        <rect x="138.08" y="200" width="300" height="34" rx="17" fill="${palette.accentBg}" stroke="${palette.accentBorder}" stroke-width="1.5" />
+        <rect x="138.08" y="196" width="300" height="34" rx="17" fill="${palette.accentBg}" stroke="${palette.accentBorder}" stroke-width="1.5" />
         <text
           x="288.08"
-          y="223"
+          y="219"
           font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
           font-size="15"
           font-weight="700"
@@ -262,10 +289,8 @@ export function generatePlateSvgString(data: PlateData): string {
   }
 
   // Área Central do QR Code:
-  // Usa o mesmo posicionamento de precisão do MODELO.svg
-  // Centro: x=288.08, y=395
-  // Cantoneiras refinadas nos 4 cantos
-  const qrFrameY = 246.47;
+  // Usa posicionamento com cantoneiras de precisão
+  const qrFrameY = 248;
   const qrFrameX = 138.08;
   const qrFrameSize = 300;
 
@@ -282,17 +307,29 @@ export function generatePlateSvgString(data: PlateData): string {
       <path d="M${qrFrameX - 6} ${qrFrameY + qrFrameSize - 36} L${qrFrameX - 6} ${qrFrameY + qrFrameSize + 6} L${qrFrameX + 36} ${qrFrameY + qrFrameSize + 6}" fill="none" stroke="${palette.accentColor}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
       
       <!-- Cantoneira Inferior Direita -->
-      <path d="M${qrFrameX + qrFrameSize - 36} ${qrFrameY + qrFrameSize + 6} L${qrFrameX + qrFrameSize + 6} ${qrFrameY + qrFrameSize + 6} L${qrFrameX + qrFrameSize + 6} ${qrFrameY + qrFrameSize - 36}" fill="none" stroke="${palette.accentColor}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M${qrFrameX + qrFrameSize - 36} ${qrFrameY + qrFrameSize + 6} L${qrFrameX + qrFrameSize + 6} ${qrFrameY + qrFrameSize + 6} L${qrFrameX + qrFrameSize + 6} ${qrFrameY - 36}" fill="none" stroke="${palette.accentColor}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
 
-      <!-- Fundo Branco Absoluto para o QR Code (garantia de 100% legibilidade) -->
+      <!-- Fundo Branco Absoluto para o QR Code -->
       <rect x="${qrFrameX}" y="${qrFrameY}" width="${qrFrameSize}" height="${qrFrameSize}" fill="#FFFFFF" rx="16" filter="url(#qr-shadow)" />
 
-      <!-- QR Code Vetorial Dinâmico -->
-      <g transform="translate(${qrFrameX + 18}, ${qrFrameY + 18})">
-        <svg width="${qrFrameSize - 36}" height="${qrFrameSize - 36}" viewBox="0 0 580 580">
-          <path transform="scale(20)" fill="none" stroke="#0F172A" stroke-width="1" class="qrline" d="${data.qrPathD}" />
-        </svg>
-      </g>
+      <!-- QR CODE EM ALTA RESOLUÇÃO (GARANTIA TOTAL DE RENDERIZAÇÃO) -->
+      ${
+        data.qrDataUrl
+          ? `
+        <image
+          href="${data.qrDataUrl}"
+          x="${qrFrameX + 16}"
+          y="${qrFrameY + 16}"
+          width="${qrFrameSize - 32}"
+          height="${qrFrameSize - 32}"
+          style="image-rendering: crisp-edges;"
+        />
+      `
+          : `
+        <rect x="${qrFrameX + 16}" y="${qrFrameY + 16}" width="${qrFrameSize - 32}" height="${qrFrameSize - 32}" fill="#F1F5F9" rx="8" />
+        <text x="288.08" y="398" font-family="sans-serif" font-size="14" fill="#94A3B8" text-anchor="middle">Gerando QR Code...</text>
+      `
+      }
     </g>
   `;
 
@@ -332,7 +369,7 @@ export function generatePlateSvgString(data: PlateData): string {
             ? `
           <!-- CHAVE PIX POR EXTENSO -->
           <g id="pix-key-box">
-            <rect x="100" y="626" width="376.16" height="38" rx="8" fill="${palette.badgeBg}" stroke="${palette.cardBorder}" stroke-width="1" />
+            <rect x="90" y="626" width="396.16" height="38" rx="8" fill="${palette.badgeBg}" stroke="${palette.cardBorder}" stroke-width="1" />
             <text
               x="288.08"
               y="650"
@@ -373,7 +410,7 @@ export function generatePlateSvgString(data: PlateData): string {
             ? `
           <!-- SENHA DO WI-FI POR EXTENSO -->
           <g id="wifi-password-box">
-            <rect x="100" y="580" width="376.16" height="54" rx="10" fill="${palette.badgeBg}" stroke="${palette.cardBorder}" stroke-width="1.5" />
+            <rect x="90" y="580" width="396.16" height="54" rx="10" fill="${palette.badgeBg}" stroke="${palette.cardBorder}" stroke-width="1.5" />
             <text
               x="288.08"
               y="602"
@@ -514,9 +551,8 @@ export function generatePlateSvgString(data: PlateData): string {
     </linearGradient>
   </defs>
 
-  <!-- 1. CORPO DA PLACA EM ACRÍLICO (Contorno externo com chanfro e cantos arredondados) -->
+  <!-- 1. CORPO DA PLACA EM ACRÍLICO -->
   <g id="acrylic-plate-body">
-    <!-- Placa Principal com corte a laser -->
     <rect
       x="16"
       y="16"
@@ -529,7 +565,6 @@ export function generatePlateSvgString(data: PlateData): string {
       filter="url(#acrylic-depth)"
     />
 
-    <!-- Borda interna fina simulando o bisotê/chanfro do acrílico -->
     <rect
       x="24"
       y="24"
@@ -542,7 +577,6 @@ export function generatePlateSvgString(data: PlateData): string {
       opacity="0.4"
     />
 
-    <!-- Efeito de Reflexo de Luz no Acrílico (Lustre Diagonal) -->
     <path
       d="M24 24 L340 24 L24 450 Z"
       fill="url(#acrylic-gloss-gradient)"

@@ -8,7 +8,6 @@ import {
   Sliders, 
   ShieldCheck, 
   CreditCard,
-  FileCode,
   Image as ImageIcon
 } from 'lucide-react';
 import { 
@@ -22,6 +21,7 @@ import {
   type PixPlateData, 
   type PlateTheme 
 } from './PlateSvgCanvas';
+import { printPlateSvg } from '../../utils/printPlate';
 
 declare global {
   interface Window {
@@ -44,7 +44,7 @@ export const PixGenerator: React.FC = () => {
   const [showKeyText, setShowKeyText] = useState<boolean>(true);
 
   // Estados de Controle
-  const [qrPathD, setQrPathD] = useState<string>('');
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copiedPayload, setCopiedPayload] = useState<boolean>(false);
   const [isExportingPng, setIsExportingPng] = useState<boolean>(false);
 
@@ -60,29 +60,32 @@ export const PixGenerator: React.FC = () => {
     });
   }, [keyType, key, merchantName, merchantCity, amount, txid]);
 
-  // Gera o caminho vetorial (path 'd') do QR Code sempre que o payload muda
+  // Gera o QR Code em alta definição (800x800) em tempo real
   useEffect(() => {
     let active = true;
 
-    async function generateQrPath() {
+    async function generateQrImage() {
       if (!pixData.payload) return;
       try {
-        const svgString = await QRCode.toString(pixData.payload, {
-          type: 'svg',
-          margin: 0,
+        const dataUrl = await QRCode.toDataURL(pixData.payload, {
+          width: 800,
+          margin: 1,
           errorCorrectionLevel: 'M',
+          color: {
+            dark: '#0F172A',
+            light: '#FFFFFF',
+          },
         });
 
-        const match = svgString.match(/d="([^"]+)"/);
-        if (match && active) {
-          setQrPathD(match[1]);
+        if (active) {
+          setQrDataUrl(dataUrl);
         }
       } catch (err) {
         console.error('Erro ao gerar QR Code do Pix:', err);
       }
     }
 
-    generateQrPath();
+    generateQrImage();
     return () => {
       active = false;
     };
@@ -92,7 +95,7 @@ export const PixGenerator: React.FC = () => {
   const plateData: PixPlateData = useMemo(() => {
     return {
       type: 'pix',
-      qrPathD,
+      qrDataUrl,
       companyName,
       merchantName: pixData.merchantName,
       merchantCity: pixData.merchantCity,
@@ -102,7 +105,7 @@ export const PixGenerator: React.FC = () => {
       showKeyText,
       theme,
     };
-  }, [qrPathD, companyName, pixData, keyType, showKeyText, theme]);
+  }, [qrDataUrl, companyName, pixData, keyType, showKeyText, theme]);
 
   // SVG completo para download ou conversão
   const fullSvgString = useMemo(() => {
@@ -127,7 +130,7 @@ export const PixGenerator: React.FC = () => {
     }
   };
 
-  // Dispara a impressão otimizada via navegador
+  // Dispara a impressão isolada da placa
   const handlePrint = () => {
     if (window.gtag) {
       window.gtag('event', 'print_pix_plate', {
@@ -135,27 +138,7 @@ export const PixGenerator: React.FC = () => {
         theme,
       });
     }
-    window.print();
-  };
-
-  // Baixa o arquivo vetorial .SVG da placa
-  const handleDownloadSvg = () => {
-    if (!fullSvgString) return;
-    const blob = new Blob([fullSvgString], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `placa_pix_${(companyName || 'minha_loja').toLowerCase().replace(/\s+/g, '_')}.svg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    if (window.gtag) {
-      window.gtag('event', 'download_pix_svg', {
-        event_category: 'pix_generator',
-      });
-    }
+    printPlateSvg(fullSvgString);
   };
 
   // Baixa em PNG de altíssima definição (1190 x 1684 pixels - padrão 300 DPI para impressão de alta qualidade)
@@ -199,7 +182,7 @@ export const PixGenerator: React.FC = () => {
       img.onerror = () => {
         setIsExportingPng(false);
         URL.revokeObjectURL(url);
-        alert('Falha ao renderizar a imagem PNG. Tente exportar em SVG.');
+        alert('Falha ao renderizar a imagem PNG. Tente novamente.');
       };
 
       img.src = url;
@@ -483,7 +466,7 @@ export const PixGenerator: React.FC = () => {
               Pré-visualização da Placa (Display 10x15cm / A5)
             </span>
             <span className="text-[11px] font-semibold text-slate-500 bg-white px-2.5 py-1 rounded-full border border-slate-200">
-              Vetor 300 DPI
+              300 DPI
             </span>
           </div>
 
@@ -497,7 +480,7 @@ export const PixGenerator: React.FC = () => {
           </p>
         </div>
 
-        {/* Botões de Ação: Imprimir e Exportar */}
+        {/* Botões de Ação: Imprimir e Baixar PNG */}
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-3">
           <button
             type="button"
@@ -508,26 +491,15 @@ export const PixGenerator: React.FC = () => {
             Imprimir Placa Agora (Grátis)
           </button>
 
-          <div className="grid grid-cols-2 gap-3 pt-1">
-            <button
-              type="button"
-              onClick={handleDownloadPng}
-              disabled={isExportingPng}
-              className="py-3 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:opacity-50"
-            >
-              <ImageIcon className="w-4 h-4 text-slate-500" />
-              {isExportingPng ? 'Gerando...' : 'Baixar Imagem PNG'}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDownloadSvg}
-              className="py-3 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
-            >
-              <FileCode className="w-4 h-4 text-slate-500" />
-              Baixar Vetor SVG
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleDownloadPng}
+            disabled={isExportingPng}
+            className="w-full py-3.5 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:opacity-50"
+          >
+            <ImageIcon className="w-4 h-4 text-slate-500" />
+            {isExportingPng ? 'Gerando Imagem...' : 'Baixar Imagem em Alta Resolução (PNG 300 DPI)'}
+          </button>
         </div>
       </div>
     </div>
